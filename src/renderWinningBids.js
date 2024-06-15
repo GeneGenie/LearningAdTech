@@ -29,8 +29,7 @@
 
 import { createHook } from "./processes.js";
 
-
-
+console.log("Hello World");
 export const createIframeProcess = createHook("sync", _createIframe);
 
 function _createIframe(width, height) {
