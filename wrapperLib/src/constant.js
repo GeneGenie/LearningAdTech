@@ -9,7 +9,7 @@ export const div_2_sizes = [
 export const PREBID_TIMEOUT = 1000;
 export const FAILSAFE_TIMEOUT = 3000;
 
-export const CONFIG ={
+export const CONFIG = {
     sra: true,
     ad_refresh: false,
     refreshTimeSeconds: 15,

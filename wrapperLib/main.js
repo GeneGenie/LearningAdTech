@@ -24,8 +24,8 @@ function runAuction() {
         adUnitsCache.length = 0;
         pbjs.requestBids({
             adUnits: adUnits,
-            bidsBackHandler: (...args) => {
-                initAdserver(...args)
+            bidsBackHandler: () => {
+                initAdserver(googletag, pbjs)
                 resolve()
             },
             timeout: PREBID_TIMEOUT,

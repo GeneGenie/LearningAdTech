@@ -4,8 +4,6 @@ import {_createIframe} from "./createIframe.js";
 
 export const createIframeProcess = createHook('sync', _createIframe)
 
-
-
 export function renderWinningBids() {
     const winningBids = pbjs.getHighestCpmBids();
     if (!winningBids || winningBids.length === 0) {

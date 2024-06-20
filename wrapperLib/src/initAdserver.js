@@ -1,5 +1,5 @@
-export function initAdserver() {
-    googletag.cmd.push(function () {
+export function initAdserver(googletag, pbjs) {
+    googletag.cmd.push(() => {
         pbjs.setTargetingForGPTAsync();
     });
 }
