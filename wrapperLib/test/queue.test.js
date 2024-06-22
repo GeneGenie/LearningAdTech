@@ -1,6 +1,7 @@
 import { test, expect } from 'vitest'
-import { addToQueue, ensureAndGetGlobal, initQueue, processQueue } from "../src/queue_init.js";
-// global.window = {}
+import { addToQueue, ensureAndGetGlobal, initQueue, processQueue } from "../src/queueInit.js";
+
+
 test('ensureAndGetGlobal init', ({}) => {
     const w = {};
 
