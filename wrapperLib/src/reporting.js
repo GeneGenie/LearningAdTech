@@ -12,11 +12,11 @@ function sendEvents() {
 //     // events stream not stopping stopping debounce  - maxTime
 //     // page close - beforeunload + sendBeacon
 
-    // fetch(ANAL_URL, {
-    //     body: JSON.stringify(events),
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' }
-    // })
+    fetch(ANAL_URL, {
+        body: JSON.stringify(events),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
 }
 
 window.addEventListener('beforeunload', sendEvents)
