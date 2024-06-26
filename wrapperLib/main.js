@@ -6,10 +6,6 @@ import {run} from "./src/run.js";
 import { recordEvent } from "./src/reporting.js";
 
 
-pbjs.onEvent('bidRequested', (data) => {
-    debugger
-})
-
 function getScriptPerformanceEntry(scriptName) {
     const entries = performance.getEntriesByType('resource');
     return entries.find(entry => entry.name.includes(scriptName));
@@ -38,8 +34,47 @@ const googleQue = [...googletag.cmd]
 googletag.cmd.length = 0
 
 googletag.cmd.push(function () {
+
+    pbjs.onEvent('bidRequested', (data) => {
+        console.log('request', data)
+        const time = Date.now()
+
+        data.bids.forEach(bid => {
+            recordEvent(EVENTS.REQUEST, {
+                time,
+                bidderCode: bid.bidder,
+                unitCode: bid.adUnitCode
+            })
+        })
+
+    })
+
+    pbjs.onEvent('bidResponse', (data) => {
+        console.log('response', data)
+
+        recordEvent(EVENTS.RESPONSE, {
+            time: Date.now(),
+            bidderCode: data.bidderCode,
+            unitCode: data.adUnitCode
+        })
+    })
+
+    pbjs.onEvent('adRenderSucceeded', data => {
+        console.log('prebid render', data)
+
+        recordEvent(EVENTS.IMPRESSION, {
+            time: Date.now(),
+            bidderCode: data.bid.bidderCode,
+            unitCode: data.bid.adUnitCode
+        })
+    })
+
+});
+
+googletag.cmd.push(function () {
     googletag.pubads().disableInitialLoad();
 });
+
 
 const placements = {};
 googletag.cmd.push(() => {
