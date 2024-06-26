@@ -7,8 +7,5 @@
   "workspaces": [
     "server",
     "wrapperLib"
-  ],
-  "dependencies": {
-
-  }
+  ]
 }
