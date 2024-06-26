@@ -1,54 +1,78 @@
-import '/src/queue_init.js'
+import { initQueue } from '/src/queueInit.js'
 import 'virtual:plugins';
-import {CONFIG, PREBID_TIMEOUT} from "/src/constant.js";
-import {adUnitsF} from "/src/adUnits.js";
+import {EVENTS , CONFIG} from "/src/constant.js";
 import {renderWinningBids} from "/src/renderWinningBids.js";
-import {debounce} from "./src/debounce.js";
-import {initAdserver} from "./src/initAdserver.js";
+import {run} from "./src/run.js";
+import { recordEvent } from "./src/reporting.js";
 
 
+function getScriptPerformanceEntry(scriptName) {
+    const entries = performance.getEntriesByType('resource');
+    return entries.find(entry => entry.name.includes(scriptName));
+}
+
+const wrapperPerformance = getScriptPerformanceEntry('main.js');
+recordEvent(EVENTS.INIT, {
+    time: Date.now(),
+    timeSincePageLoad: Math.round(performance.now()),
+    timeToLoad: Math.round(wrapperPerformance.duration),
+})
+
+recordEvent(EVENTS.ERROR, {
+    time: Date.now(),
+    timeSincePageLoad: Math.round(performance.now()),
+    timeToLoad: Math.round(wrapperPerformance.duration),
+    message: 'Error loading wrapper',
+})
+
+
+
+initQueue();
 window.googletag = window.googletag || { cmd: [] }
 
 const googleQue = [...googletag.cmd]
 googletag.cmd.length = 0
 
 googletag.cmd.push(function () {
-    googletag.pubads().disableInitialLoad();
-});
 
-const adUnitsCache = [];
+    pbjs.onEvent('bidRequested', (data) => {
+        const time = Date.now()
 
-function runAuction() {
-    return new Promise((resolve) => {
-        const adUnits = [...adUnitsCache];
-        adUnitsCache.length = 0;
-        pbjs.requestBids({
-            adUnits: adUnits,
-            bidsBackHandler: (...args) => {
-                initAdserver(...args)
-                resolve()
-            },
-            timeout: PREBID_TIMEOUT,
-        });
-    })
-}
-
-const runAuctionDebounced = debounce(runAuction, 10);
-
-const run = (adUnitPath, sizes) => {
-    adUnitsCache.push(adUnitsF(adUnitPath, sizes))
-    if (CONFIG.sra) {
-        runAuctionDebounced();
-        return new Promise((resolve) => {
-            pbjs.onEvent('auctionEnd', (...args) => {
-                if (!args[0].adUnitCodes.includes(adUnitPath)) return;
-                resolve()
+        data.bids.forEach(bid => {
+            recordEvent(EVENTS.REQUEST, {
+                time,
+                bidderCode: bid.bidder,
+                unitCode: bid.adUnitCode,
             })
         })
-    } else {
-        return runAuction();
-    }
-}
+
+    })
+
+    pbjs.onEvent('bidResponse', (data) => {
+
+        recordEvent(EVENTS.RESPONSE, {
+            time: Date.now(),
+            bidderCode: data.bidderCode,
+            unitCode: data.adUnitCode,
+            cpm: data.cpm
+        })
+    })
+
+    pbjs.onEvent('adRenderSucceeded', data => {
+
+        recordEvent(EVENTS.IMPRESSION, {
+            time: Date.now(),
+            bidderCode: data.bid.bidderCode,
+            unitCode: data.bid.adUnitCode,
+            cpm: data.bid.cpm
+        })
+    })
+
+});
+
+googletag.cmd.push(function () {
+    googletag.pubads().disableInitialLoad();
+});
 
 
 const placements = {};
@@ -93,8 +117,6 @@ if (CONFIG.ad_refresh) {
 }
 
 googletag.cmd.push(...googleQue);
-
-
 
 window.wrapper = window.wrapper || {};
 wrapper.cmd = wrapper.cmd || [];
