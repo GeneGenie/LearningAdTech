@@ -36,36 +36,35 @@ googletag.cmd.length = 0
 googletag.cmd.push(function () {
 
     pbjs.onEvent('bidRequested', (data) => {
-        console.log('request', data)
         const time = Date.now()
 
         data.bids.forEach(bid => {
             recordEvent(EVENTS.REQUEST, {
                 time,
                 bidderCode: bid.bidder,
-                unitCode: bid.adUnitCode
+                unitCode: bid.adUnitCode,
             })
         })
 
     })
 
     pbjs.onEvent('bidResponse', (data) => {
-        console.log('response', data)
 
         recordEvent(EVENTS.RESPONSE, {
             time: Date.now(),
             bidderCode: data.bidderCode,
-            unitCode: data.adUnitCode
+            unitCode: data.adUnitCode,
+            cpm: data.cpm
         })
     })
 
     pbjs.onEvent('adRenderSucceeded', data => {
-        console.log('prebid render', data)
 
         recordEvent(EVENTS.IMPRESSION, {
             time: Date.now(),
             bidderCode: data.bid.bidderCode,
-            unitCode: data.bid.adUnitCode
+            unitCode: data.bid.adUnitCode,
+            cpm: data.bid.cpm
         })
     })
 
